@@ -1,0 +1,7 @@
+---
+- name: Install exporters on all nodes
+  hosts: slurm_master:slurm_workers
+  become: yes
+  roles:
+    - role: exporters
+      tasks_from: node_exporter.yml

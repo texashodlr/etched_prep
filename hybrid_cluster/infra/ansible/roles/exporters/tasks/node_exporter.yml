@@ -1,0 +1,49 @@
+---
+- name: Create node_exporter user
+  ansible.builtin.user:
+    name: nodeexp
+    system: yes
+    shell: /usr/sbin/nologin
+
+- name: Download node_exporter tarball
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: /tmp/node_exporter.tar.gz
+    mode: "0644"
+
+- name: Extract node_exporter
+  ansible.builtin.unarchive:
+    src: /tmp/node_exporter.tar.gz
+    dest: /opt/
+    remote_src: yes
+    creates: "/opt/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+
+- name: Symlink binary
+  ansible.builtin.file:
+    src: "/opt/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+    dest: /usr/local/bin/node_exporter
+    state: link
+
+- name: Install systemd unit
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/node_exporter.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Prometheus Node Exporter
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=nodeexp
+      Group=nodeexp
+      ExecStart=/usr/local/bin/node_exporter --web.listen-address=:{{ node_exporter_port }}
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable and start node_exporter
+  ansible.builtin.systemd:
+    name: node_exporter
+    enabled: yes
+    state: started

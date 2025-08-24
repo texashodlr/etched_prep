@@ -1,0 +1,11 @@
+groups:
+- name: eda-regressions
+  rules:
+  - alert: VerilatorRuntimeRegression
+    expr: median_over_time(eda_sim_seconds[7d])
+          > (1.15 * median_over_time(eda_sim_seconds[30d]))
+    for: 30m
+    labels: { severity: page }
+    annotations:
+      summary: "Sim runtime regression"
+      runbook: "https://github.com/texashodlr/etched_prep/hybrid_cluster/runbooks/sim"

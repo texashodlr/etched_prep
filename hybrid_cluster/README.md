@@ -28,6 +28,15 @@ Dashboards: `kubectl port-forward svc/grafana 3000:3000`
 4.2. Emits job metadata as Prometheus pushgateway metrics
 4.3. Attaches and OpenTelemetry trace context.
 
+## VM Requirements
+1. 1x Slurm Master with `Ubuntu 22.04.5-live-server`
+2. 2x Slurm Workers with `Ubuntu 22.04.5-live-server`
+
+All specs are the same and as follows:
+- 2 vCPUs
+- 8GB RAM
+
+
 ## Repo Skeleton
 
 hybrid_cluster/

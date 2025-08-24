@@ -1,0 +1,17 @@
+cluster_name: etched-lab
+slurm_version: ""         # leave blank for distro packages
+slurm_control_host: slurm-master
+slurm_state_dir: /var/spool/slurm
+slurm_log_dir: /var/log/slurm
+slurm_accounting_enabled: false  # flip to true later if you add slurmdbd
+slurm_partitions:
+  - name: latency
+    default: yes
+    nodes: "{{ groups['slurm_workers'] | join(',') }}"
+    maxtime: "01:00:00"
+  - name: batch
+    default: no
+    nodes: "{{ groups['slurm_workers'] | join(',') }}"
+    maxtime: "3-00:00:00"
+node_exporter_version: "1.8.2"
+node_exporter_port: 9100

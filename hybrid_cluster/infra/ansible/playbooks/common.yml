@@ -1,0 +1,49 @@
+---
+- name: Common base config for all nodes
+  hosts: slurm_master:slurm_workers
+  become: yes
+  vars:
+    is_debian: "{{ ansible_os_family == 'Debian' }}"
+    is_redhat: "{{ ansible_os_family == 'RedHat' }}"
+  tasks:
+    - name: Ensure package repos present (RedHat EPEL optional)
+      when: is_redhat and (enable_epel | bool)
+      ansible.builtin.yum:
+        name: epel-release
+        state: present
+
+    - name: Install base packages
+      ansible.builtin.package:
+        name:
+          - curl
+          - wget
+          - git
+          - python3
+          - python3-pip
+          - numactl
+          - hwloc
+          - tar
+          - gzip
+          - acl
+        state: present
+        update_cache: yes
+
+    - name: Create slurm and munge users if missing
+      ansible.builtin.user:
+        name: "{{ item }}"
+        shell: /usr/sbin/nologin
+        system: yes
+      loop:
+        - munge
+        - slurm
+
+    - name: Create core directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: slurm
+        group: slurm
+        mode: "0755"
+      loop:
+        - "{{ slurm_state_dir }}"
+        - "{{ slurm_log_dir }}"
