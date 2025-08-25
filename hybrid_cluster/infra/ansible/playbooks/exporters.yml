@@ -3,5 +3,5 @@
   hosts: slurm_master:slurm_workers
   become: yes
   roles:
-    - role: exporters
+    - role: ../roles/exporters
       tasks_from: node_exporter.yml
