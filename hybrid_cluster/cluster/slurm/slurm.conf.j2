@@ -21,6 +21,14 @@ SelectType=select/cons_tres
 SelectTypeParameters=CR_Core
 
 # Nodes from inventory
+# --- Nodes ---
+# Master as a node (optional)
+NodeName={{ slurm_control_host }} \
+  NodeAddr={{ hostvars[slurm_control_host].ansible_host | default(hostvars[slurm_control_host].ansible_default_ipv4.address) }} \
+  CPUs={{ hostvars[slurm_control_host].ansible_facts['processor_vcpus'] | default(4) }} \
+  RealMemory={{ (hostvars[slurm_control_host].ansible_facts['memtotal_mb'] | default(8192)) | int }} \
+  State=UNKNOWN
+
 {% for host in groups['slurm_workers'] %}
 NodeName={{ host }} CPUs={{ hostvars[host].ansible_facts['processor_vcpus'] | default(4) }} RealMemory={{ (hostvars[host].ansible_facts['memtotal_mb'] | default(8192)) | int }} State=UNKNOWN
 {% endfor %}
