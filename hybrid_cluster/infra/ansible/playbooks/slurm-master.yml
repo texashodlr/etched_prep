@@ -44,7 +44,7 @@
 
     - name: Template slurm.conf
       ansible.builtin.template:
-        src: "../../cluster/slurm/slurm.conf.j2"
+        src: "../../../cluster/slurm/slurm.conf.j2"
         dest: /etc/slurm/slurm.conf
         owner: slurm
         group: slurm
@@ -52,7 +52,7 @@
 
     - name: Template cgroup.conf
       ansible.builtin.template:
-        src: "../../cluster/slurm/cgroup.conf.j2"
+        src: "../../../cluster/slurm/cgroup.conf.j2"
         dest: /etc/slurm/cgroup.conf
         owner: slurm
         group: slurm
