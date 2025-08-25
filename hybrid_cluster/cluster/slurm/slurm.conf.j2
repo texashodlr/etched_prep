@@ -1,13 +1,11 @@
 # ===== Core =====
-ClusterName={{ cluster_name | default('hybrid_cluster') }}
-# These must match the master's hostname
+ClusterName={{ cluster_name | default('etched-lab') }}
 SlurmctldHost={{ slurm_control_host }}
-ControlMachine={{ slurm_control_host }}
 
-# Force IPv4 to avoid AF_UNSPEC/IPv6 surprises
+# Force IPv4 (avoid AF_UNSPEC/IPv6 surprises)
 CommunicationParameters=IPv4
 
-# Bind controller to master's IPv4 address
+# Bind controller to master's IPv4
 ControlAddr={{ hostvars[slurm_control_host].ansible_host
                | default(hostvars[slurm_control_host].ansible_default_ipv4.address) }}
 
@@ -18,13 +16,14 @@ SlurmdPort=6818
 # Auth/log/state
 AuthType=auth/munge
 SlurmUser=slurm
+MailProg=/bin/true
 SlurmctldPidFile=/var/run/slurmctld.pid
 SlurmdPidFile=/var/run/slurmd.pid
 SlurmctldLogFile={{ slurm_log_dir }}/slurmctld.log
 SlurmdLogFile={{ slurm_log_dir }}/slurmd.log
 StateSaveLocation={{ slurm_state_dir }}
 
-# Sched/Select
+# Scheduling / selection
 SchedulerType=sched/backfill
 SelectType=select/cons_tres
 SelectTypeParameters=CR_Core
@@ -37,13 +36,13 @@ KillWait=30
 MinJobAge=300
 
 # ===== Nodes =====
-# Master participates as a compute node (Option B)
+# Master as a compute node (Option B)
 NodeName={{ slurm_control_host }} \
   NodeHostname={{ slurm_control_host }} \
   NodeAddr={{ hostvars[slurm_control_host].ansible_host
               | default(hostvars[slurm_control_host].ansible_default_ipv4.address) }} \
-  CPUs={{ hostvars[slurm_control_host].ansible_facts['processor_vcpus'] | default(4) }} \
-  RealMemory={{ (hostvars[slurm_control_host].ansible_facts['memtotal_mb'] | default(8192)) | int }} \
+  CPUs={{ hostvars[slurm_control_host].ansible_facts['processor_vcpus'] | default(2) }} \
+  RealMemory={{ (hostvars[slurm_control_host].ansible_facts['memtotal_mb'] | default(4096)) | int }} \
   State=UNKNOWN
 
 # Workers
@@ -57,14 +56,15 @@ NodeName={{ host }} \
   State=UNKNOWN
 {% endfor %}
 
-# Dummy partition to avoid empty config edge cases
-PartitionName=invalid Nodes=NONE Default=NO MaxTime=INFINITE State=UP
-
-# Real partitions (include master too)
+# ===== Partitions =====
+{% set worker_list = groups['slurm_workers'] | join(',') %}
 {% for p in slurm_partitions %}
+# e.g., p.name: latency/batch; p.nodes: "slurm-w1,slurm-w2"
 PartitionName={{ p.name }} Nodes={{ p.nodes }},{{ slurm_control_host }} Default={{ 'YES' if p.default else 'NO' }} MaxTime={{ p.maxtime }} State=UP
 {% endfor %}
 
 # Accounting (off for now)
 AccountingStorageType=accounting_storage/none
 JobCompType=jobcomp/none
+ProctrackType=proctrack/cgroup
+TaskPlugin=task/cgroup
