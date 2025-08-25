@@ -1,0 +1,64 @@
+sinfo: error: Ignoring ControlAddr since SlurmctldHost is set.
+Mon Aug 25 03:23:29 2025
+NODELIST      NODES PARTITION       STATE CPUS    S:C:T MEMORY TMP_DISK WEIGHT AVAIL_FE REASON
+slurm-master      1  latency*        idle 2       2:1:1   7937        0      1   (null) none
+slurm-master      1     batch        idle 2       2:1:1   7937        0      1   (null) none
+slurm-w1          1  latency*    unknown* 4       4:1:1   8192        0      1   (null) none
+slurm-w1          1     batch    unknown* 4       4:1:1   8192        0      1   (null) none
+slurm-w2          1  latency*    unknown* 4       4:1:1   8192        0      1   (null) none
+slurm-w2          1     batch    unknown* 4       4:1:1   8192        0      1   (null) none
+scontrol: error: Ignoring ControlAddr since SlurmctldHost is set.
+NodeName=slurm-master Arch=x86_64 CoresPerSocket=1
+   CPUAlloc=0 CPUTot=2 CPULoad=0.01
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=192.168.1.161 NodeHostName=slurm-master Version=21.08.5
+   OS=Linux 5.15.0-152-generic #162-Ubuntu SMP Wed Jul 23 09:48:42 UTC 2025
+   RealMemory=7937 AllocMem=0 FreeMem=6574 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=latency,batch
+   BootTime=2025-08-24T19:56:06 SlurmdStartTime=2025-08-25T03:22:41
+   LastBusyTime=2025-08-25T03:22:41
+   CfgTRES=cpu=2,mem=7937M,billing=2
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+
+NodeName=slurm-w1 CoresPerSocket=1
+   CPUAlloc=0 CPUTot=4 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=192.168.1.150 NodeHostName=slurm-w1
+   RealMemory=8192 AllocMem=0 FreeMem=N/A Sockets=4 Boards=1
+   State=UNKNOWN+NOT_RESPONDING ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=latency,batch
+   BootTime=None SlurmdStartTime=None
+   LastBusyTime=2025-08-25T03:22:39
+   CfgTRES=cpu=4,mem=8G,billing=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+
+NodeName=slurm-w2 CoresPerSocket=1
+   CPUAlloc=0 CPUTot=4 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=192.168.1.119 NodeHostName=slurm-w2
+   RealMemory=8192 AllocMem=0 FreeMem=N/A Sockets=4 Boards=1
+   State=UNKNOWN+NOT_RESPONDING ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=latency,batch
+   BootTime=None SlurmdStartTime=None
+   LastBusyTime=2025-08-25T03:22:39
+   CfgTRES=cpu=4,mem=8G,billing=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+
+squeue: error: Ignoring ControlAddr since SlurmctldHost is set.
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
