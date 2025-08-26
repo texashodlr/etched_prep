@@ -1,0 +1,31 @@
+# Ansible Role for Installing Verilator and Yosys
+
+---
+- name: Install build deps
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - make
+      - git
+      - pkg-config
+      - libfl-dev
+      - bison
+      - flex
+      - python3
+      - python3-pip
+      - yosys
+      - verilator
+    state: present
+    update_cache: yes
+
+- name: Verify tools
+  ansible.builtin.shell: |
+    set -e
+    verilator --version
+    yosys -V
+  register: eda_versions
+  changed_when: false
+
+- name: Show tool versions
+  ansible.builtin.debug:
+    var: eda_versions.stdout_lines

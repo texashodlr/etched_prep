@@ -1,0 +1,13 @@
+# Playbook for the Slurm works and master to install EDA tool chain
+---
+- name: Install EDA toolchain on master
+  hosts: slurm_master
+  become: yes
+  roles:
+    - eda_toolchain
+
+- name: Install EDA toolchain on workers
+  hosts: slurm_workers
+  become: yes
+  roles:
+    - eda_toolchain
