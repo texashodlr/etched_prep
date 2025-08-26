@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module counter #(parameter W=8) (
   input  wire        clk,
   input  wire        rst_n,

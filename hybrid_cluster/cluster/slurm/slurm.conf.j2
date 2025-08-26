@@ -51,8 +51,8 @@ NodeName={{ host }} \
   NodeHostname={{ host }} \
   NodeAddr={{ hostvars[host].ansible_host
               | default(hostvars[host].ansible_default_ipv4.address) }} \
-  CPUs={{ hostvars[host].ansible_facts['processor_vcpus'] | default(4) }} \
-  RealMemory={{ (hostvars[host].ansible_facts['memtotal_mb'] | default(8192)) | int }} \
+  CPUs={{ hostvars[host].ansible_facts['processor_vcpus'] | default(2) }} \
+  RealMemory={{ (hostvars[host].ansible_facts['memtotal_mb'] | default(4096)) | int }} \
   State=UNKNOWN
 {% endfor %}
 
