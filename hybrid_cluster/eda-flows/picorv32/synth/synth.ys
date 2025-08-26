@@ -1,0 +1,7 @@
+read_verilog counter.v
+hierarchy -top counter
+proc; opt; fsm; opt; memory; opt
+techmap; opt
+abc -D 1
+stat
+write_json counter.json
