@@ -4,10 +4,10 @@
   hosts: slurm_master
   become: yes
   roles:
-    - eda_toolchain
+    - role: ../roles/eda_toolchain
 
 - name: Install EDA toolchain on workers
   hosts: slurm_workers
   become: yes
   roles:
-    - eda_toolchain
+    - role: ../roles/eda_toolchain
