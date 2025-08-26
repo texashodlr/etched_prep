@@ -7,7 +7,7 @@ ROOT = os.path.dirname(os.path.dirname(__file__))
 def submit(args):
     design = args.design
     flow   = args.flow
-    job = os.path.join(ROOT, f"../eda-flows/{design}/{flow}/job.sh")
+    job = os.path.join(ROOT, f"eda-flows/{design}/{flow}/job.sh")
     if not os.path.exists(job):
         print(f"Missing job script: {job}", file=sys.stderr); sys.exit(1)
 
