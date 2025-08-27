@@ -1,32 +1,35 @@
 # Mini EDA Hybrid Cluster
-Slurm, k8s, and hardware aware jobs!
+Slurm, Ansible, and hardware aware jobs!
 
 ## Goal
 Stand up a tiny hybrid cluster (VMs with a VMware backbone) with the called out tools below.
   Running an open-source EDA pipeline: Verilator Regression -> Yosys synth -> OpenROAD P&R on open RTL.
+
+This repo is a mis-mash of Etched Representative projects [link:https://jobs.ashbyhq.com/Etched/1c03c13b-6f2e-44e7-b5bd-b7628412f8b9]:
+"Design and deploy a fully automated, scalable hybrid HPC cluster, combining bare-metal servers and switches with cloud instances, provisioned through MaaS and orchestrated via SLURM and Kubernetes, optimized for mixed EDA workloads and parallel CI pipelines.
+
+Develop a real-time observability system for ASIC toolchain jobs and distributed builds, integrating Prometheus, Grafana, and VictoriaMetrics with streaming telemetry, tracing, and alerting to detect performance regressions before they hit silicon."
+
+### Hybrid Cluster Uses
 - **Slurm** for EDA jobs
-- **Kubernetes** for services
-- **Ansible/Terraform** for declarative provisioning
-- **Observability** via exporters, PromQL rules, and dashboards
+- **Ansible** for declarative provisioning
 - **`edctl` CLI** to abstract job submission/logs/metrics
 
 ## Quick Start
 0. `./create_structure.sh` -> Creates the barebones repo-skele
-1. `cd infra/terraform && terraform apply` -> Brings up the VM nodes
-2. `ansible-playbook playbooks/common.yml -i inventory.ini`
-3. `make -C eda-flows/picorv32 sim` -> run Verilator regression
-4. `python edctl/cli.py submit --flow=sim --profile=latency`
+1. `cd infra/ansible && ./ansible_test` -> Verifies VM nodes are ready for the Slurm playbooks and installs slurms on nodes found in inventory.ini
+2. `./ansible_validate` -> Verifies successful installation of slurm across nodes.
+3. `cd playbooks && ./ansibble_eda_validate.sh` -> Installs EDA Tooling (Verilator/Yosys) on all nodes
+3. On the slurm master node clone this repo and in the hybrid_cluster/ dir: `./eda-flows/picorv32/sim/job.sh` -> makes the actual eda-sim .o files
+4. In the repo root (hybrid_cluster/) run: `./8-bit_job.sh` -> Runs the actual verilator regression job (via slurm) across the nodes.
 
-Dashboards: `kubectl port-forward svc/grafana 3000:3000`
 
 ## Implementation
-1. Provisioned 3-6 VMs (Terraform + Ansible)
+1. Provisioned 3 VMs (VMware + Ansible)
 2. Slurm Partitions for latency (fast CPU cores), and throughput (bulk jobs)
-3. Exporters: node, SLurm, process; Prometheus + Victoria Metrics + Grafana on K8s
+3. Exporters: node, SLurm, process
 4. Wrapper like edctl that:
 4.1. Submits parameterized sbatch with labels for latency or memory
-4.2. Emits job metadata as Prometheus pushgateway metrics
-4.3. Attaches and OpenTelemetry trace context.
 
 ## VM Requirements
 1. 1x Slurm Master with `Ubuntu 22.04.5-live-server`

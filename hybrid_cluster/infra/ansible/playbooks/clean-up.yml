@@ -1,0 +1,174 @@
+# This playbook exists purely to delete everything off the VM nodes.
+
+- name: Cleanup Slurm + Munge + EDA (Debian/Ubuntu)
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars:
+    # <<< SAFETY SWITCH >>>
+    cleanup_confirm: false  # must be overridden with -e cleanup_confirm=true
+
+    # What to remove
+    cleanup_remove_users: false        # set true to delete slurm/munge users/groups
+    cleanup_remove_repo_tree: false    # set true to delete your repo working copy
+    repo_path: "/home/ansible_user/etched_prep/hybrid_cluster"
+
+    # Packages (Ubuntu 22.04 names)
+    pkgs_slurm:
+      - slurm-wlm
+      - slurm-wlm-basic-plugins
+    pkgs_munge:
+      - munge
+      - libmunge2
+      - libmunge-dev
+    pkgs_eda:
+      - verilator
+      - yosys
+    pkgs_exporters: []   # e.g., ["prometheus-node-exporter"] if you installed from apt
+
+    # Services (only stopped/disabled if present)
+    services_to_stop:
+      - slurmctld
+      - slurmd
+      - munge
+      - node_exporter    # if you installed a systemd unit for node_exporter
+    services_to_mask:
+      - slurmctld
+      - slurmd
+      - munge
+
+    # Directories/files to remove
+    paths_to_remove:
+      - /etc/slurm
+      - /var/spool/slurm
+      - /var/log/slurm
+      - /run/slurm
+      - /var/run/slurm
+      - /etc/munge
+      - /var/lib/munge
+      - /var/log/munge
+      - /run/munge
+      - /var/run/munge
+
+  pre_tasks:
+    - name: Abort unless cleanup_confirm=true
+      ansible.builtin.fail:
+        msg: "Refusing to run cleanup because cleanup_confirm is false. Invoke with: -e cleanup_confirm=true"
+      when: not cleanup_confirm | bool
+
+    - name: OS guard (Debian-family only)
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "Debian"
+        fail_msg: "This playbook is written for Debian/Ubuntu. Edit packages/services for your distro before running."
+
+  tasks:
+    - name: Stop services if present
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      loop: "{{ services_to_stop }}"
+      register: stop_results
+      ignore_errors: yes
+
+    - name: Mask services to prevent auto-start
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        masked: yes
+      loop: "{{ services_to_mask }}"
+      ignore_errors: yes
+
+    - name: Remove Slurm packages (purge)
+      ansible.builtin.apt:
+        name: "{{ pkgs_slurm }}"
+        state: absent
+        purge: yes
+        autoremove: yes
+        update_cache: yes
+
+    - name: Remove Munge packages (purge)
+      ansible.builtin.apt:
+        name: "{{ pkgs_munge }}"
+        state: absent
+        purge: yes
+        autoremove: yes
+
+    - name: Remove EDA packages (purge)
+      ansible.builtin.apt:
+        name: "{{ pkgs_eda }}"
+        state: absent
+        purge: yes
+        autoremove: yes
+
+    - name: Remove exporter packages (purge) (optional)
+      ansible.builtin.apt:
+        name: "{{ pkgs_exporters }}"
+        state: absent
+        purge: yes
+        autoremove: yes
+      when: pkgs_exporters | length > 0
+
+    - name: Delete Slurm & Munge directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop: "{{ paths_to_remove }}"
+
+    - name: Remove custom node_exporter unit (if you installed one under /etc/systemd/system)
+      ansible.builtin.file:
+        path: /etc/systemd/system/node_exporter.service
+        state: absent
+      ignore_errors: yes
+
+    - name: systemd daemon-reload
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Remove slurm user (optional)
+      ansible.builtin.user:
+        name: slurm
+        state: absent
+        remove: yes
+      when: cleanup_remove_users | bool
+      ignore_errors: yes
+
+    - name: Remove munge user (optional)
+      ansible.builtin.user:
+        name: munge
+        state: absent
+        remove: yes
+      when: cleanup_remove_users | bool
+      ignore_errors: yes
+
+    - name: Remove slurm group (optional)
+      ansible.builtin.group:
+        name: slurm
+        state: absent
+      when: cleanup_remove_users | bool
+      ignore_errors: yes
+
+    - name: Remove munge group (optional)
+      ansible.builtin.group:
+        name: munge
+        state: absent
+      when: cleanup_remove_users | bool
+      ignore_errors: yes
+
+    - name: Remove repository working copy on node (optional, irreversible!)
+      ansible.builtin.file:
+        path: "{{ repo_path }}"
+        state: absent
+      when: cleanup_remove_repo_tree | bool
+
+  post_tasks:
+    - name: Show cleanup summary
+      ansible.builtin.debug:
+        msg:
+          - "Cleanup complete on {{ inventory_hostname }}."
+          - "Stopped/masked services: {{ services_to_stop | join(', ') }}"
+          - "Purged packages: {{ (pkgs_slurm + pkgs_munge + pkgs_eda + pkgs_exporters) | unique | join(', ') }}"
+          - "Removed paths: {{ paths_to_remove | join(', ') }}"
+          - "Users/groups removed: {{ cleanup_remove_users }}"
+          - "Repo tree removed: {{ cleanup_remove_repo_tree }}"
