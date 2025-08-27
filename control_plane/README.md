@@ -20,6 +20,11 @@
 We're running this entire repo on my homelab VMware ESXi host (no vCenter).
 We'll need OVFtool, see this download[https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest] and this article [https://rguske.github.io/post/vmware-ovftool-installation-was-unsuccessful-on-ubuntu-20/#fn:8]
 
+1. Download the Linux zip for 5.0.0 and unzip then move that ovftool dir to /usr/bin/
+2. `export PATH="/usr/bin/ovftool:$PATH"`
+3. `echo 'export PATH="/usr/bin/ovftool:$PATH"' >> ~/.bashrc`
+4. `ovftool --version`
+
 192.168.1.250
 ubuntu-server
 ubuntu-user

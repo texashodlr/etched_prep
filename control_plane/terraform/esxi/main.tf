@@ -47,9 +47,6 @@ resource "esxi_guest" "slurm_master" {
   network_interfaces {
     virtual_network = local.vm_common.network_name # esxi_portgroup.cluster_pg.name if created above
   }
-
-  # Optionally bump disk:
-  boot_disk_size = 20_480  # in MB (20 GB). If larger than source, grows disk.
 }
 
 # ---------- Worker 1 ----------
