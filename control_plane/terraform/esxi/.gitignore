@@ -1,0 +1,7 @@
+# No secrets plz
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+.crash
+*.tfvars
+*.tfvars.json

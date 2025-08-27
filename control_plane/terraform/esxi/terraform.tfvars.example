@@ -1,0 +1,8 @@
+esxi_host       = "192.168.1.195"
+esxi_username   = "root"
+esxi_password   = "1qaz2wsx!QAZ@WSX"
+datastore       = "datastore1"
+portgroup_name  = "VM Network"
+clone_from_vm   = "ubuntu-22045-base"
+vm_vcpus        = 2
+vm_mem_mb       = 8192
