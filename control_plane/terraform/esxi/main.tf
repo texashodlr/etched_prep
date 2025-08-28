@@ -24,7 +24,7 @@ locals {
     disk_store   = var.datastore
     numvcpus     = var.vm_vcpus
     memsize      = var.vm_mem_mb
-    boot_firmware= "bios"      # EFI is cringe
+    boot_firmware= "efi"      # bios will fail the VMs
     power        = "on"
     notes        = "Managed by Terraform (ESXi provider)"
     network_name = var.portgroup_name

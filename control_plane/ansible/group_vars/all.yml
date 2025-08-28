@@ -1,0 +1,23 @@
+cluster_name: "control-plane"
+
+slurm_control_host: "slurm-master"
+
+ipv_mode: "IPv4"
+
+slurm_nodes:
+  slurm-master: { cpus: 2, realmem: 7800}
+  slurm-w1:     { cpus: 2, realmem: 7800}
+  slurm-w2:     { cpus: 2, realmem: 7800}
+
+slurmctld_port: 6817
+slurmd_port: 6818
+
+slurm_partitions:
+  - { name: "latency", default: true, nodes: "slurm-master,slurm-w1,slurm-w2", max_time: "INFINITE"}
+  - { name: "batch", default: false, nodes: "slurm-master,slurm-w1,slurm-w2", max_time: "INFINITE"}
+
+base_packages:
+  - htop
+  - git
+  - make
+  - chrony

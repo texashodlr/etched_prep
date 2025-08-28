@@ -1,0 +1,17 @@
+---
+- name: Ensure base packages
+  apt:
+    name: "{{ base_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Ensure /etc/hosts has cluster entries (master-only authoritative)
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item }}"
+    state: present
+  loop:
+    - "{{ hostvars['slurm-master'].ansible_host }}   slurm-master"
+    - "{{ hostvars['slurm-w1'].ansible_host }}       slurm-w1"
+    - "{{ hostvars['slurm-w2'].ansible_host }}       slurm-w2"
+  when: "'slurm-master' in hostvars and 'slurm-w1' in hostvars and 'slurm-w2' in hostvars"

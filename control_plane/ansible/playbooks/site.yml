@@ -1,0 +1,30 @@
+---
+- name: Base config on all nodes
+  hosts: all
+  roles:
+    - base
+
+- name: Configure Munge
+  hosts: all
+  roles:
+    - munge
+
+- name: Configure Slurm Master
+  hosts: slurm_master
+  roles:
+    - { role: slurm, vars: { slurm_role: "master" } }
+
+- name: Configure Slurm Workers
+  hosts: slurm_workers
+  roles:
+    - { role: slurm, vars: { slurm_role: "worker" } }
+
+- name: Install EDA toolchain
+  hosts: all
+  roles:
+    - eda_toolchain
+
+- name: Install Puppet agent (optional)
+  hosts: all
+  roles:
+    - puppet_agent
