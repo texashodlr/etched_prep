@@ -1,0 +1,34 @@
+---
+- name: Install Puppet agent
+  apt:
+    name: puppet-agent
+    state: present
+    update_cache: yes
+
+- name: Ensure puppet runs periodically (cron)
+  cron:
+    name: "puppet agent periodic"
+    job: "/opt/puppetlabs/bin/puppet apply /etc/puppetlabs/code/manifests/site.pp >/var/log/puppet-apply.log 2>&1"
+    minute: "*/15"
+    user: root
+
+# Minimal desired-state example: ensure services up
+- name: Seed minimal site.pp
+  copy:
+    dest: /etc/puppetlabs/code/manifests/site.pp
+    mode: '0644'
+    content: |
+      package { ['slurm-wlm','slurm-wlm-basic-plugins','munge','verilator','yosys']:
+        ensure => present,
+      }
+      service { 'munge':
+        ensure => running, enable => true,
+      }
+      service { 'slurmd':
+        ensure => running, enable => true,
+      }
+      if $facts['networking']['hostname'] == 'slurm-master' {
+        service { 'slurmctld':
+          ensure => running, enable => true,
+        }
+      }

@@ -1,0 +1,58 @@
+---
+- name: Install slurm master packages
+  apt:
+    name: [slurm-wlm, slurm-wlm-basic-plugins]
+    state: present
+    update_cache: yes
+
+- name: Ensure slurm dirs
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: slurm
+    group: slurm
+    mode: "{{ item.mode | default('0755') }}"
+  loop:
+    - { path: /etc/slurm, mode: '0755' }
+    - { path: /var/spool/slurm, mode: '0755' }
+
+- name: Deploy slurm.conf
+  template:
+    src: slurm.conf.j2
+    dest: /etc/slurm/slurm.conf
+    owner: slurm
+    group: slurm
+    mode: '0644'
+  notify: restart slurmctld
+
+- name: Deploy cgroup.conf
+  template:
+    src: cgroup.conf.j2
+    dest: /etc/slurm/cgroup.conf
+    owner: slurm
+    group: slurm
+    mode: '0644'
+  notify: restart slurmctld
+
+- name: Enable & start slurmctld
+  systemd:
+    name: slurmctld
+    state: started
+    enabled: yes
+
+- name: Handlers
+  meta: flush_handlers
+
+- name: Verify controller ping
+  command: scontrol ping
+  register: scping
+  changed_when: false
+  failed_when: "'UP' not in scping.stdout"
+
+- name: Handlers block (defined here for role)
+  block:
+    - name: restart slurmctld
+      systemd:
+        name: slurmctld
+        state: restarted
+      listen: restart slurmctld

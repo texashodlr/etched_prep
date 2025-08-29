@@ -1,0 +1,33 @@
+# ---- Slurm cluster {{ cluster_name }} ----
+ClusterName={{ cluster_name }}
+SlurmctldHost={{ slurm_control_host }}
+SlurmctldPort={{ slurmctld_port }}
+SlurmdPort={{ slurmd_port }}
+
+AuthType=auth/munge
+StateSaveLocation=/var/spool/slurm
+SlurmUser=slurm
+SlurmdUser=root
+SlurmctldDebug=info
+SlurmdDebug=info
+ProctrackType=proctrack/cgroup
+TaskPlugin=task/affinity
+ReturnToService=2
+SwitchType=switch/none
+SelectType=select/cons_tres
+CommunicationParameters={{ ipv_mode }}
+
+# ---- Nodes ----
+NodeName={{ slurm_control_host }} NodeHostname={{ slurm_control_host }} NodeAddr={{ hostvars[slurm_control_host].ansible_host }} CPUs={{ slurm_nodes[slurm_control_host].cpus }} RealMemory={{ slurm_nodes[slurm_control_host].realmem }} State=UNKNOWN
+{% for h in groups['slurm_workers'] %}
+NodeName={{ h }} NodeHostname={{ h }} NodeAddr={{ hostvars[h].ansible_host }} CPUs={{ slurm_nodes[h].cpus }} RealMemory={{ slurm_nodes[h].realmem }} State=UNKNOWN
+{% endfor %}
+
+# ---- Partitions ----
+{% for p in slurm_partitions %}
+PartitionName={{ p.name }} Nodes={{ p.nodes }} Default={{ 'YES' if p.default else 'NO' }} MaxTime={{ p.max_time }} State=UP
+{% endfor %}
+
+# ---- Accounting (disabled for MVP) ----
+AccountingStorageType=accounting_storage/none
+JobCompType=jobcomp/none
