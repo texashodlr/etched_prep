@@ -1,4 +1,23 @@
 ---
+- name: Download Puppet release package
+  become: yes
+  get_url: 
+    url: "https://apt.puppetlabs.com/puppet8-release-{{ ansible_lsb.codename }}.deb"
+    dest: "/tmp/puppet8-release-{{ ansible_lsb.codename }}.deb"
+    mode: '0644'
+  register: puppet_release_pkg
+
+- name: Install Puppet release package
+  become: yes
+  apt:
+    deb: "/tmp/puppet8-release-{{ ansible_lsb.codename }}.deb"
+  when: puppet_release_pkg is changed
+
+- name: Update apt cache
+  become: yes
+  apt:
+    update_cache: yes
+
 - name: Install Puppet agent
   apt:
     name: puppet-agent
