@@ -1,11 +1,28 @@
 ---
+# Ensure Ubuntu 'universe' repo is enabled (needed for slurm-wlm)
+- name: Enable universe repo (Ubuntu)
+  become: yes
+  apt_repository:
+    repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_lsb.codename }} universe"
+    state: present
+  register: add_universe
+  when: ansible_distribution == "Ubuntu"
+
+- name: Update apt cache (if repo changed or cache is stale)
+  become: yes
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
 - name: Install slurm worker packages
+  become: yes
   apt:
     name: [slurm-wlm, slurm-wlm-basic-plugins]
     state: present
     update_cache: yes
 
 - name: Ensure slurm dir
+  become: yes
   file:
     path: /etc/slurm
     state: directory
@@ -14,6 +31,7 @@
     mode: '0755'
 
 - name: Deploy slurm.conf
+  become: yes
   template:
     src: slurm.conf.j2
     dest: /etc/slurm/slurm.conf
@@ -23,6 +41,7 @@
   notify: restart slurmd
 
 - name: Deploy cgroup.conf
+  become: yes
   template:
     src: cgroup.conf.j2
     dest: /etc/slurm/cgroup.conf
@@ -32,6 +51,7 @@
   notify: restart slurmd
 
 - name: Enable & start slurmd
+  become: yes
   systemd:
     name: slurmd
     state: started
@@ -41,6 +61,7 @@
   meta: flush_handlers
 
 - name: restart slurmd
+  become: yes
   systemd:
     name: slurmd
     state: restarted
