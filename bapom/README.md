@@ -26,20 +26,45 @@ Using: [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), an
 - Metal Machines: 2x GPU nodes (Pete & Andy), provisioned via MASS which have the Nvidia driver/cuda/container suites and various k8s+pytorch dependencies.
 
 ## Workflow Phases
-0. MAAS and Terraform
-0.1 Install MAAS Region and Rack and then configure the provisioning VLAN. [Install Guide](https://canonical.com/maas/docs/how-to-get-maas-up-and-running)
-`lsb_release -a` # I'm running Ubuntu 22.04.5 LTS on WSL for the Control Plane
-`sudo snap install --channel=3.6/stable maas` # [MAAS Ver 3.6](https://canonical.com/maas/docs/release-notes-and-upgrade-instructions#p-9229-version-36-release-notes)
-Do a quick verification:
-`snap version` # Produces something like the below:
-snap    2.71
-snapd   2.71
-series  16
-ubuntu  22.04
-kernel  5.15.167.4-microsoft-standard-WSL2 
-`sudo snap services maas`          --> maas.pebble  enabled  active
-`sudo snape services maas-test-db` --> maas-test-db.postgres  enabled  active
-`sudo snap install maas-test-db`
-`sudo maas init region+rack --database-uri maas-test-db:///` # Generally links to: URL: `default=http://localhost:5240/MAAS` or something similar
-`sudo mass createadmin`
-Then at this point you can login to the MaaS portal and configure the rest of the steps that way.
+__0.__ MAAS and Terraform  
+
+__0.1.__ Install MAAS Region and Rack and then configure the provisioning VLAN. [Install Guide](https://canonical.com/maas/docs/how-to-get-maas-up-and-running)  
+
+`lsb_release -a` # I'm running Ubuntu 22.04.5 LTS on WSL for the Control Plane  
+
+`sudo snap install --channel=3.6/stable maas` # [MAAS Ver 3.6](https://canonical.com/maas/docs/release-notes-and-upgrade-instructions#p-9229-version-36-release-notes)  
+
+Do a quick verification:  
+
+`snap version` # Produces something like the below:  
+
+snap    2.71  
+
+snapd   2.71  
+
+series  16  
+
+ubuntu  22.04  
+
+kernel  5.15.167.4-microsoft-standard-WSL2  
+
+`sudo snap services maas`          --> maas.pebble  enabled  active  
+
+`sudo snape services maas-test-db` --> maas-test-db.postgres  enabled  active  
+
+`sudo snap install maas-test-db`  
+
+`sudo maas init region+rack --database-uri maas-test-db:///` # Generally links to: URL: `default=http://localhost:5240/MAAS` or something similar  
+
+`sudo mass createadmin`  
+
+__0.2.__ Then at this point you can login to the MaaS portal and configure the rest of the steps that way, and the metal hosts would populate inside the: hardware/machines tab.
+
+__0.3.__ We'll next need to export out MAAS API keys: `export TF_VAR_maas_api_url="http://<maas-ip>:5240/MAAS"` and `export TF_VAR_maas_api_key="<your-key>"`  
+
+__0.4.__ Init on the terraform side:
+`cd terraform/phase0`  
+
+`terraform init`
+
+`terraform apply -auto-approve`  
