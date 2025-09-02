@@ -40,4 +40,6 @@ kernel  5.15.167.4-microsoft-standard-WSL2
 `sudo snap services maas`          --> maas.pebble  enabled  active
 `sudo snape services maas-test-db` --> maas-test-db.postgres  enabled  active
 `sudo snap install maas-test-db`
-`sudo maas init region+rack --database-uri maas-test-db:///` # Generally links to: URL: `default=http://172.17.221.61:5240/MAAS
+`sudo maas init region+rack --database-uri maas-test-db:///` # Generally links to: URL: `default=http://localhost:5240/MAAS` or something similar
+`sudo mass createadmin`
+Then at this point you can login to the MaaS portal and configure the rest of the steps that way.
