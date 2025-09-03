@@ -1,0 +1,9 @@
+- name: reload_sysctl
+  ansible.builtin.command: sysctl --system
+  listen: reload_sysctl
+  changed_when: true
+
+- name: mark_reboot
+  ansible.builtin.set_fact:
+    reboot_required: true
+  listen: mark_reboot

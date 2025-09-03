@@ -1,0 +1,58 @@
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ base_packages }}"
+    update_cache: yes
+    state: present
+
+- name: Ensure swap is off now
+  ansible.builtin.command: swapoff -a
+  changed_when: false
+
+- name: Disable swap at boot (comment in /etc/fstab)
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^(.*\s+swap\s+.*)$'
+    replace: '# \1'
+  register: swap_fstab
+  notify: mark_reboot
+
+- name: Load br_netfilter at boot
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/k8s.conf
+    content: |
+      br_netfilter
+      overlay
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure kernel modules are loaded now
+  ansible.builtin.shell: |
+    modprobe br_netfilter || true
+    modprobe overlay || true
+  args: { executable: /bin/bash }
+  changed_when: false
+
+- name: Basic sysctls for containers/K8s
+  ansible.builtin.copy:
+    src: kube.sysctl.conf
+    dest: /etc/sysctl.d/99-kube.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload_sysctl
+
+- name: Enable and start chrony
+  ansible.builtin.systemd:
+    name: chrony
+    state: started
+    enabled: yes
+
+- name: Mark reboot if kernel params changed
+  ansible.builtin.set_fact:
+    reboot_required: true
+  when: swap_fstab is changed

@@ -68,3 +68,5 @@ __0.4.__ Init on the terraform side:
 `terraform init`
 
 `terraform apply -auto-approve`  
+
+__1.__ Ansible

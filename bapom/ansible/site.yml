@@ -1,0 +1,23 @@
+- name: Phase-1 | Baseline OS, NVIDIA, containerd, kube prereqs
+  hosts: all
+  gather_facts: yes
+  become: yes
+  vars:
+    reboot_required: false
+  pre_tasks:
+    - name: Assert Ubuntu 22.04+
+      ansible.builtin.assert:
+        that: ansible_distribution == "Ubuntu" and (ansible_distribution_version is version('22.04', '>='))
+        fail_msg: "This playbook expects Ubuntu 22.04+"
+  roles:
+    - role: base-os
+    - role: nvidia-drivers
+    - role: containerd
+    - role: kube-prereqs
+  post_tasks:
+    - name: Reboot if any role requested it
+      ansible.builtin.reboot:
+        msg: "Rebooting after Phase-1 changes"
+        connect_timeout: 30
+        reboot_timeout: 1200
+      when: reboot_required | bool

@@ -1,0 +1,23 @@
+# Nvidia Drivers and Toolkit #
+nvidia_driver_package: ""
+install_graphics_drivers_ppa: false
+
+# containerd #
+use_docker_repo_for_containerd: false
+
+# kubernetes #
+k8s_series: "v1.30"
+k8s_version: "1.30.*"
+
+# general packages #
+timezone: "UTC"
+base_packages:
+  - curl
+  - git
+  - htop
+  - ca-certification
+  - gnupg
+  - lsb-release
+  - net-tools
+  - iproute2
+  - chrony

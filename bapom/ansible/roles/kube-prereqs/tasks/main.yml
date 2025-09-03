@@ -1,0 +1,40 @@
+# pkgs.k8s.io stable repo (new style)
+- name: Create keyring dir
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Add Kubernetes apt key (pkgs.k8s.io)
+  ansible.builtin.shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ k8s_series }}/deb/Release.key \
+      | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  args: { creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg }
+
+- name: Add Kubernetes apt repo
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    content: |
+      deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ k8s_series }}/deb/ /
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install kubelet/kubeadm/kubectl (pinned)
+  ansible.builtin.apt:
+    name:
+      - "kubelet={{ k8s_version }}"
+      - "kubeadm={{ k8s_version }}"
+      - "kubectl={{ k8s_version }}"
+    state: present
+    update_cache: yes
+
+- name: Hold Kubernetes packages
+  ansible.builtin.shell: apt-mark hold kubelet kubeadm kubectl
+  changed_when: false
+
+- name: Enable kubelet (won't start fully until kubeadm init/join)
+  ansible.builtin.systemd:
+    name: kubelet
+    enabled: yes
+    state: stopped
