@@ -1,23 +1,52 @@
-- name: Phase-1 | Baseline OS, NVIDIA, containerd, kube prereqs
+- name: Phase-1 | Base OS on all nodes
   hosts: all
   gather_facts: yes
   become: yes
-  vars:
-    reboot_required: false
-  pre_tasks:
-    - name: Assert Ubuntu 22.04+
-      ansible.builtin.assert:
-        that: ansible_distribution == "Ubuntu" and (ansible_distribution_version is version('22.04', '>='))
-        fail_msg: "This playbook expects Ubuntu 22.04+"
   roles:
     - role: base-os
-    - role: nvidia-drivers
-    - role: containerd
-    - role: kube-prereqs
   post_tasks:
-    - name: Reboot if any role requested it
+    - name: Reboot if base-os requested it
       ansible.builtin.reboot:
-        msg: "Rebooting after Phase-1 changes"
+        msg: "Rebooting after base-os"
         connect_timeout: 30
         reboot_timeout: 1200
-      when: reboot_required | bool
+      when: reboot_required | default(false) | bool
+
+- name: Phase-1 | NVIDIA drivers on GPU nodes only
+  hosts: gpu_nodes
+  gather_facts: yes
+  become: yes
+  roles:
+    - role: nvidia-drivers
+  post_tasks:
+    - name: Reboot if nvidia-drivers requested it
+      ansible.builtin.reboot:
+        msg: "Rebooting after nvidia drivers"
+        connect_timeout: 30
+        reboot_timeout: 1200
+      when: reboot_required | default(false) | bool
+
+- name: Phase-1 | containerd everywhere (control + workers)
+  hosts: all
+  gather_facts: yes
+  become: yes
+  roles:
+    - role: containerd
+  post_tasks:
+    - name: Restart containerd already handled by role (no reboot)
+      ansible.builtin.debug:
+        msg: "containerd configured"
+
+- name: Phase-1 | Kubernetes prereqs everywhere
+  hosts: all
+  gather_facts: yes
+  become: yes
+  roles:
+    - role: kube-prereqs
+  post_tasks:
+    - name: Final reboot if anything still requested it
+      ansible.builtin.reboot:
+        msg: "Final reboot after Phase-1"
+        connect_timeout: 30
+        reboot_timeout: 1200
+      when: reboot_required | default(false) | bool
