@@ -3,7 +3,19 @@
     name: containerd
     state: present
     update_cache: yes
-  when: not use_docker_repo_for_containerd
+
+- name: Ensure containerd service is enabled and started
+  ansible.builtin.systemd:
+    name: containerd
+    enabled: true
+    state: started
+
+- name: Create default /etc/containerd/config.toml if missing
+  ansible.builtin.shell: |
+    test -f /etc/containerd/config.toml || containerd config default > /etc/containerd/config.toml
+  args:
+    executable: /bin/bash
+  changed_when: false
 
 - name: Install Docker repo prerequisites
   ansible.builtin.apt:
@@ -33,17 +45,6 @@
     group: root
     mode: '0644'
   when: use_docker_repo_for_containerd
-
-- name: Install containerd.io (Docker-provided)
-  ansible.builtin.apt:
-    name: containerd.io
-    state: present
-    update_cache: yes
-  when: use_docker_repo_for_containerd
-
-- name: Create default config if missing
-  ansible.builtin.command: bash -lc "test -f /etc/containerd/config.toml || containerd config default > /etc/containerd/config.toml"
-  changed_when: false
 
 - name: Drop tuned containerd config
   ansible.builtin.template:
