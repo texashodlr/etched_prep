@@ -57,16 +57,20 @@
 # ===== NVIDIA Container Toolkit =====
 - name: Add NVIDIA libnvidia-container repo key
   ansible.builtin.shell: |
-    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit.gpg
-  args: { creates: /usr/share/keyrings/nvidia-container-toolkit.gpg }
+    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+     | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+  args: { creates: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg }
 
 - name: Add NVIDIA libnvidia-container repo list
   ansible.builtin.shell: |
-    distribution=$(. /etc/os-release; echo $ID$VERSION_ID) && \
-    curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
-      | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit.gpg] https://#' \
-      | tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+      | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+      | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
   args: { creates: /etc/apt/sources.list.d/nvidia-container-toolkit.list }
+
+- name: apt update after adding NVIDIA CTkit Repo
+  ansible.builtin.apt:
+    update_cache: yes
 
 - name: Install nvidia-container-toolkit
   ansible.builtin.apt:
@@ -74,3 +78,7 @@
     state: present
     update_cache: yes
   notify: restart_containerd
+
+- name: Debug apt policy for nvidia-container-toolkit
+  ansible.builtin.shell: apt-cache policy nvidia-container-toolkit | sed -n '1,12p'
+  changed_when: false

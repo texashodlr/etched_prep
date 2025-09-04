@@ -15,7 +15,7 @@ base_packages:
   - curl
   - git
   - htop
-  - ca-certification
+  - ca-certificates
   - gnupg
   - lsb-release
   - net-tools
