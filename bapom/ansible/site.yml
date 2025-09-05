@@ -27,7 +27,7 @@
       when: reboot_required | default(false) | bool
 
 - name: Phase-1 | containerd everywhere (control + workers)
-  hosts: all
+  hosts: control_plane,workers,gpu_nodes
   gather_facts: yes
   become: yes
   roles:
