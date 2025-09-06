@@ -1,18 +1,49 @@
 #####################
 # pkgs.k8s.io stable repo (new style)
 #
-- name: Add Kubernetes apt key
+- name: Install prereqs for k8s
   become: yes
-  ansible.builtin.apt_key:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
     state: present
+    update_cache: yes
 
-- name: Add Kubernetes apt repository
+- name: Create keyrings directory
+  become: yes
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download and dearmor k8s apt key
+  become: yes
+  ansible.builtin.shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Set permissions on k8s apt key
+  become: yes
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    mode: '0644'
+
+- name: Add k8s apt repository
   become: yes
   ansible.builtin.apt_repository:
-    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    repo: 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /'
     state: present
     filename: kubernetes
+
+- name: Set permissions on Kubernetes apt list
+  become: yes
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/kubernetes.list
+    mode: '0644'
 
 - name: Update apt cache
   become: yes
