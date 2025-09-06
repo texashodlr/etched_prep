@@ -15,7 +15,8 @@
         name: containerd
         enabled: true
         state: started
- rescue:
+  
+  rescue:
     - name: Fallback | Docker repo prerequisites
       ansible.builtin.apt:
         name: [ca-certificates, curl, gnupg]
