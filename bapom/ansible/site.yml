@@ -13,7 +13,7 @@
       when: reboot_required | default(false) | bool
 
 - name: Phase-1 | NVIDIA drivers on GPU nodes only
-  hosts: gpu_nodes
+  hosts: workers,gpu_nodes
   gather_facts: yes
   become: yes
   roles:

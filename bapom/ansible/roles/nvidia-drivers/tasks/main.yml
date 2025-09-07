@@ -1,3 +1,7 @@
+########################################
+        #### NVIDIA DRIVERS ####
+########################################
+# Source: https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=22.04&target_type=deb_local
 - name: Remove Nouveau (blacklist)
   ansible.builtin.copy:
     dest: /etc/modprobe.d/blacklist-nouveau.conf
@@ -27,27 +31,44 @@
     state: present
     update_cache: yes
 
-- name: Install NVIDIA driver (explicit package if set)
+- name: Download CUDA pin file
+  become: yes
+  ansible.builtin.get_url:
+    url: ttps://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
+    dest: /etc/apt/preferences.d/cuda-repository-pin-600
+    mode: '0644'
+
+- name: Download CUDA local repo installer
+  become: yes
+  ansible.builtin.get_url:
+    url: https://developer.download.nvidia.com/compute/cuda/13.0.1/local_installers/cuda-repo-ubuntu2204-13-0-local_13.0.1-580.82.07-1_amd64.deb
+    dest: /tmp/cuda-repo-ubuntu2204-13-0-local_13.0.1-580.82.07-1_amd64.deb
+    mode: '0644'
+
+- name: Install CUDA repo package
+  become: yes
   ansible.builtin.apt:
-    name: "{{ nvidia_driver_package }}"
-    state: present
-    update_cache: yes
-  when: nvidia_driver_package | length > 0
-  notify: mark_reboot
+    deb: /tmp/cuda-repo-ubuntu2204-13-0-local_13.0.1-580.82.07-1_amd64.deb
 
-- name: Install NVIDIA driver (auto recommend if not set)
-  ansible.builtin.command: ubuntu-drivers install --gpgpu
-  args: { creates: /usr/bin/nvidia-smi }
-  when: nvidia_driver_package | length == 0
-  notify: mark_reboot
-
-- name: Ensure nvidia-smi available
-  ansible.builtin.command: nvidia-smi -L
-  register: smi
-  failed_when: false
+- name: Copy CUDA keyring
+  become: yes
+  ansible.builtin.shell: cp /var/cuda-repo-ubuntu2204-13-0-local/cuda-*-keyring.gpg /usr/share/keyrings/
   changed_when: false
+
+- name: Update apt cache
+  become: yes
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install CUDA toolkit
+  become: yes
+  ansible.builtin.apt:
+    name: cuda-toolkit-13-0
+    state: present
 
 - name: Flag reboot if driver not yet active
   ansible.builtin.set_fact:
     reboot_required: true
   when: smi.rc != 0
+
+
