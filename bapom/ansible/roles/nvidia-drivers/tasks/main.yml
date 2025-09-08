@@ -34,7 +34,7 @@
 - name: Download CUDA pin file
   become: yes
   ansible.builtin.get_url:
-    url: ttps://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
+    url: htps://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
     dest: /etc/apt/preferences.d/cuda-repository-pin-600
     mode: '0644'
 
@@ -64,6 +64,18 @@
   become: yes
   ansible.builtin.apt:
     name: cuda-toolkit-13-0
+    state: present
+
+- name: Install Nvidia-utils-570-server
+  become: yes
+  ansible.built.apt:
+    name: nvidia-utils-570-server
+    state: present
+  
+- name: Install Nvidia CUDA Drivers
+  become: yes
+  ansible.built.apt:
+    name: nvidia-utils-570-server
     state: present
 
 - name: Flag reboot if driver not yet active
